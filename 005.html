@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="lienzo1"></canvas>
+    <script>
+    		class Particula{
+    			constructor(x, y, angulo,velocidad) {
+                this.x = x;
+                this.y = y;
+                this.velocidad = velocidad;
+                this.angulo = angulo;
+            }
+    		}
+    		
+    		class Emisor{
+    			constructor(x1, y1, x2,y2) {
+                this.x1 = x1;
+                this.y1 = y1;
+                this.x2 = x2;
+                this.y2 = y2;
+            }
+    		}
+    	const anchura =window.innerWidth;
+    	const altura = window.innerHeight;
+        const lienzo1 = document.querySelector("#lienzo1");
+        
+        lienzo1.width = anchura
+        lienzo1.height = altura
+        const contexto = lienzo1.getContext("2d");
+        contexto.strokeStyle = "red"
+        let numeroparticulas = 200;
+        let numeroemisores = 5
+        let emisores = []
+        
+        for(let i = 0;i<numeroemisores;i++){
+        		emisores.push(new Emisor(Math.random()*anchura,Math.random()*altura,Math.random()*anchura,Math.random()*altura))
+        }
+        
+        for(let i = 0;i<numeroemisores;i++){
+		     	contexto.beginPath()
+		     	contexto.moveTo(emisores[i].x1,emisores[i].y1)
+		     	contexto.lineTo(emisores[i].x2,emisores[i].y2)
+		     	contexto.stroke()
+        }
+        
+        
+    </script>
+</body>
+</html>
+

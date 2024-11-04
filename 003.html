@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML5 Canvas - Particles from Lines</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Generate random red lines
+        const lines = [];
+        for (let i = 0; i < 5; i++) {
+            lines.push({
+                x1: Math.random() * canvas.width,
+                y1: Math.random() * canvas.height,
+                x2: Math.random() * canvas.width,
+                y2: Math.random() * canvas.height
+            });
+        }
+
+        // Generate random green colliders
+        const colliders = [];
+        for (let i = 0; i < 5; i++) {
+            colliders.push({
+                x1: Math.random() * canvas.width,
+                y1: Math.random() * canvas.height,
+                x2: Math.random() * canvas.width,
+                y2: Math.random() * canvas.height
+            });
+        }
+
+        // Particle class definition
+        class Particle {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.speed = 2;
+                this.angle = angle;
+                this.life = 200;
+            }
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                this.checkCollision();
+                this.life -= 1;
+            }
+            checkCollision() {
+                colliders.forEach(collider => {
+                    const dx = collider.x2 - collider.x1;
+                    const dy = collider.y2 - collider.y1;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const normal = { x: -dy / length, y: dx / length };
+
+                    const t = ((this.x - collider.x1) * dx + (this.y - collider.y1) * dy) / (length * length);
+                    if (t >= 0 && t <= 1) {
+                        const closestX = collider.x1 + t * dx;
+                        const closestY = collider.y1 + t * dy;
+                        const distance = Math.sqrt((this.x - closestX) ** 2 + (this.y - closestY) ** 2);
+
+                        if (distance < 5) { // Collision threshold
+                            this.angle = Math.atan2(-normal.y, -normal.x);
+                        }
+                    }
+                });
+            }
+            draw() {
+                ctx.strokeStyle = 'white';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - Math.cos(this.angle) * 5, this.y - Math.sin(this.angle) * 5);
+                ctx.stroke();
+            }
+        }
+
+        const particles = [];
+
+        function drawLines() {
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            lines.forEach(line => {
+                ctx.beginPath();
+                ctx.moveTo(line.x1, line.y1);
+                ctx.lineTo(line.x2, line.y2);
+                ctx.stroke();
+                
+                // Create particles normal to the line
+                const dx = line.x2 - line.x1;
+                const dy = line.y2 - line.y1;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const normalAngle = Math.atan2(dy, dx) - Math.PI / 2;
+                
+                for (let i = 0; i < length; i += 20) {
+                    const x = line.x1 + (dx / length) * i;
+                    const y = line.y1 + (dy / length) * i;
+                    particles.push(new Particle(x, y, normalAngle));
+                }
+            });
+        }
+
+        function drawColliders() {
+            ctx.strokeStyle = 'green';
+            ctx.lineWidth = 2;
+            colliders.forEach(collider => {
+                ctx.beginPath();
+                ctx.moveTo(collider.x1, collider.y1);
+                ctx.lineTo(collider.x2, collider.y2);
+                ctx.stroke();
+            });
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(particle => particle.draw());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawLines();
+            drawColliders();
+            updateParticles();
+            drawParticles();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
+

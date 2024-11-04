@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML5 Canvas - Particles from Lines</title>
+    <style>
+        body { margin: 0; overflow: hidden; background:black;}
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Red lines definition
+        const lines = [
+            { x1: 100, y1: 100, x2: 400, y2: 100 },
+            { x1: 200, y1: 200, x2: 500, y2: 300 },
+            { x1: 300, y1: 400, x2: 700, y2: 400 },
+        ];
+
+        // Particle class definition
+        class Particle {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.speed = 2;
+                this.angle = angle;
+                this.life = 200;
+            }
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                this.life -= 1;
+            }
+            draw() {
+                ctx.strokeStyle = 'white';
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - Math.cos(this.angle) * 5, this.y - Math.sin(this.angle) * 5);
+                ctx.stroke();
+            }
+        }
+
+        const particles = [];
+
+        function drawLines() {
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 2;
+            lines.forEach(line => {
+                ctx.beginPath();
+                ctx.moveTo(line.x1, line.y1);
+                ctx.lineTo(line.x2, line.y2);
+                ctx.stroke();
+                
+                // Create particles normal to the line
+                const dx = line.x2 - line.x1;
+                const dy = line.y2 - line.y1;
+                const length = Math.sqrt(dx * dx + dy * dy);
+                const normalAngle = Math.atan2(dy, dx) - Math.PI / 2;
+                
+                for (let i = 0; i < length; i += 20) {
+                    const x = line.x1 + (dx / length) * i;
+                    const y = line.y1 + (dy / length) * i;
+                    particles.push(new Particle(x, y, normalAngle));
+                }
+            });
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(particle => particle.draw());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawLines();
+            updateParticles();
+            drawParticles();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
+
